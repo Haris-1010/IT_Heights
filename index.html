@@ -936,101 +936,393 @@
             }
         });
     </script>
-    <script>
-  console.log("Chatbot script loaded");
-  console.log("kb-id:", document.querySelector('script[kb-id]')?.getAttribute('kb-id'));
+    <script> 
 </script>
 <script>
 (function () {
-  const KB_ID = "cmsrhz1m9000004l1nmtbczam"; // apna kb-id
+  const KB_ID = "cmsrhz1m9000004l1nmtbczam";
   const API_URL = "https://ai-knowledge-base-blue.vercel.app/api/public/chat";
 
+  // =========================
+  // Chat Button
+  // =========================
   const btn = document.createElement("div");
+
   btn.innerHTML = "💬";
-  btn.style.cssText = "position:fixed;bottom:24px;right:24px;width:60px;height:60px;background:#D4AF37;color:#0A1628;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.6rem;cursor:pointer;z-index:99999;box-shadow:0 8px 25px rgba(212,175,55,0.4);";
+
+  btn.style.cssText = `
+    position:fixed;
+    bottom:24px;
+    right:24px;
+    width:60px;
+    height:60px;
+    background:#D4AF37;
+    color:#0A1628;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.6rem;
+    cursor:pointer;
+    z-index:99999;
+    box-shadow:0 8px 25px rgba(212,175,55,0.4);
+  `;
+
   document.body.appendChild(btn);
 
+
+  // =========================
+  // Chat Box
+  // =========================
   const box = document.createElement("div");
-  box.style.cssText = "position:fixed;bottom:100px;right:24px;width:360px;height:480px;background:#0A1628;border:1px solid rgba(212,175,55,0.3);border-radius:16px;display:none;flex-direction:column;z-index:99999;box-shadow:0 20px 50px rgba(0,0,0,0.5);overflow:hidden;font-family:Inter,sans-serif;";
+
+  box.style.cssText = `
+    position:fixed;
+    bottom:100px;
+    right:24px;
+    width:360px;
+    height:480px;
+    background:#0A1628;
+    border:1px solid rgba(212,175,55,0.3);
+    border-radius:16px;
+    display:none;
+    flex-direction:column;
+    z-index:99999;
+    box-shadow:0 20px 50px rgba(0,0,0,0.5);
+    overflow:hidden;
+    font-family:Inter,sans-serif;
+  `;
+
   box.innerHTML = `
-    <div style="padding:14px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(212,175,55,0.2);">
-      <strong style="color:#D4AF37;">AI Assistant</strong>
-      <span id="closeChat" style="color:#fff;cursor:pointer;font-size:1.4rem;">&times;</span>
+    <div style="
+      padding:14px 18px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-bottom:1px solid rgba(212,175,55,0.2);
+    ">
+      <strong style="color:#D4AF37;">
+        AI Assistant
+      </strong>
+
+      <span
+        id="closeChat"
+        style="
+          color:#fff;
+          cursor:pointer;
+          font-size:1.4rem;
+        "
+      >
+        &times;
+      </span>
     </div>
-    <div id="chatMessages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;"></div>
-    <div style="padding:12px;border-top:1px solid rgba(212,175,55,0.2);display:flex;gap:8px;">
-      <input id="chatInput" placeholder="Type your message..." style="flex:1;padding:10px 14px;border-radius:50px;border:1px solid rgba(212,175,55,0.3);background:#111F33;color:#fff;outline:none;" />
-      <button id="sendChat" style="background:#D4AF37;color:#0A1628;border:none;border-radius:50px;padding:0 18px;font-weight:700;cursor:pointer;">Send</button>
+
+    <div
+      id="chatMessages"
+      style="
+        flex:1;
+        overflow-y:auto;
+        padding:16px;
+        display:flex;
+        flex-direction:column;
+        gap:10px;
+      "
+    ></div>
+
+    <div style="
+      padding:12px;
+      border-top:1px solid rgba(212,175,55,0.2);
+      display:flex;
+      gap:8px;
+    ">
+      <input
+        id="chatInput"
+        placeholder="Type your message..."
+        style="
+          flex:1;
+          padding:10px 14px;
+          border-radius:50px;
+          border:1px solid rgba(212,175,55,0.3);
+          background:#111F33;
+          color:#fff;
+          outline:none;
+        "
+      />
+
+      <button
+        id="sendChat"
+        style="
+          background:#D4AF37;
+          color:#0A1628;
+          border:none;
+          border-radius:50px;
+          padding:0 18px;
+          font-weight:700;
+          cursor:pointer;
+        "
+      >
+        Send
+      </button>
     </div>
   `;
+
   document.body.appendChild(box);
 
-  const messages = box.querySelector("#chatMessages");
-  const input = box.querySelector("#chatInput");
 
-function addMsg(text, isUser) {
-  const div = document.createElement("div");
+  // =========================
+  // Typing Animation CSS
+  // =========================
+  const style = document.createElement("style");
 
-  div.style.cssText = `
-    max-width:80%;
-    padding:10px 14px;
-    border-radius:14px;
-    font-size:0.9rem;
-    line-height:1.5;
-    ${isUser
-      ? "align-self:flex-end;background:#D4AF37;color:#0A1628;"
-      : "align-self:flex-start;background:#1A2D45;color:#fff;"
+  style.textContent = `
+    .typing-indicator {
+      display:flex;
+      align-items:center;
+      gap:5px;
+    }
+
+    .typing-indicator span {
+      width:7px;
+      height:7px;
+      background:#D4AF37;
+      border-radius:50%;
+      display:block;
+      animation: typing 1.4s infinite ease-in-out;
+    }
+
+    .typing-indicator span:nth-child(1) {
+      animation-delay:0s;
+    }
+
+    .typing-indicator span:nth-child(2) {
+      animation-delay:0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+      animation-delay:0.4s;
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% {
+        transform:translateY(0);
+        opacity:0.4;
+      }
+
+      30% {
+        transform:translateY(-5px);
+        opacity:1;
+      }
     }
   `;
 
-  if (isUser) {
-    div.textContent = text;
-  } else {
-    // Basic Markdown formatting
-    let html = text
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-      .replace(/^• (.*)$/gm, "• $1")
-      .replace(/\n\n/g, "<br><br>")
-      .replace(/\n/g, "<br>");
+  document.head.appendChild(style);
 
-    div.innerHTML = html;
-  }
 
-  messages.appendChild(div);
-  messages.scrollTop = messages.scrollHeight;
-}
+  // =========================
+  // Elements
+  // =========================
+  const messages = box.querySelector("#chatMessages");
+  const input = box.querySelector("#chatInput");
+  const sendButton = box.querySelector("#sendChat");
 
-  addMsg("Hi! Ask me anything from this knowledge base.", false);
 
-  btn.onclick = () => { box.style.display = box.style.display === "flex" ? "none" : "flex"; };
-  box.querySelector("#closeChat").onclick = () => { box.style.display = "none"; };
+  // =========================
+  // Add Message
+  // =========================
+  function addMsg(text, isUser) {
 
-  async function send() {
-    const text = input.value.trim();
-    if (!text) return;
-    addMsg(text, true);
-    input.value = "";
-    const loading = document.createElement("div");
-    loading.style.cssText = "align-self:flex-start;color:#D4AF37;font-size:0.85rem;";
-    loading.textContent = "Thinking...";
-    messages.appendChild(loading);
-    try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kbId: KB_ID, message: text }),
-      });
-      const data = await res.json();
-      loading.remove();
-      addMsg(data.reply || data.error || "No response", false);
-    } catch (e) {
-      loading.remove();
-      addMsg("Connection error. Please try again.", false);
+    const div = document.createElement("div");
+
+    div.style.cssText = `
+      max-width:80%;
+      padding:10px 14px;
+      border-radius:14px;
+      font-size:0.9rem;
+      line-height:1.5;
+      word-wrap:break-word;
+      ${
+        isUser
+          ? "align-self:flex-end;background:#D4AF37;color:#0A1628;"
+          : "align-self:flex-start;background:#1A2D45;color:#fff;"
+      }
+    `;
+
+
+    // User message
+    if (isUser) {
+
+      div.textContent = text;
+
     }
+
+    // AI message
+    else {
+
+      let html = text
+
+        // Bold
+        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+
+        // Bullet points
+        .replace(/^• (.*)$/gm, "• $1")
+
+        // Blank lines
+        .replace(/\n\n/g, "<br><br>")
+
+        // Normal line breaks
+        .replace(/\n/g, "<br>");
+
+
+      div.innerHTML = html;
+    }
+
+
+    messages.appendChild(div);
+
+    messages.scrollTop = messages.scrollHeight;
   }
 
-  box.querySelector("#sendChat").onclick = send;
-  input.addEventListener("keypress", (e) => { if (e.key === "Enter") send(); });
+
+  // =========================
+  // Welcome Message
+  // =========================
+  addMsg(
+    "Hi! Ask me anything from this knowledge base.",
+    false
+  );
+
+
+  // =========================
+  // Open / Close Chat
+  // =========================
+  btn.onclick = () => {
+
+    box.style.display =
+      box.style.display === "flex"
+        ? "none"
+        : "flex";
+
+  };
+
+
+  box.querySelector("#closeChat").onclick = () => {
+
+    box.style.display = "none";
+
+  };
+
+
+  // =========================
+  // Send Message
+  // =========================
+  async function send() {
+
+    const text = input.value.trim();
+
+    if (!text) return;
+
+
+    // Add user message
+    addMsg(text, true);
+
+    input.value = "";
+
+
+    // =========================
+    // Typing Indicator
+    // =========================
+    const loading = document.createElement("div");
+
+    loading.style.cssText = `
+      align-self:flex-start;
+      background:#1A2D45;
+      padding:12px 16px;
+      border-radius:14px;
+    `;
+
+    loading.innerHTML = `
+      <div class="typing-indicator">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    `;
+
+    messages.appendChild(loading);
+
+    messages.scrollTop = messages.scrollHeight;
+
+
+    try {
+
+      const res = await fetch(API_URL, {
+
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+          kbId: KB_ID,
+          message: text
+        })
+
+      });
+
+
+      const data = await res.json();
+
+
+      // Remove typing animation
+      loading.remove();
+
+
+      // Add AI response
+      addMsg(
+        data.reply ||
+        data.error ||
+        "No response",
+        false
+      );
+
+
+    }
+
+    catch (e) {
+
+      loading.remove();
+
+      addMsg(
+        "Connection error. Please try again.",
+        false
+      );
+
+    }
+
+  }
+
+
+  // =========================
+  // Send Button
+  // =========================
+  sendButton.onclick = send;
+
+
+  // =========================
+  // Enter Key
+  // =========================
+  input.addEventListener(
+    "keypress",
+    (e) => {
+
+      if (e.key === "Enter") {
+        send();
+      }
+
+    }
+  );
+
 })();
 </script>
 </body>

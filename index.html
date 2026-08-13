@@ -968,13 +968,37 @@
   const messages = box.querySelector("#chatMessages");
   const input = box.querySelector("#chatInput");
 
-  function addMsg(text, isUser) {
-    const div = document.createElement("div");
-    div.style.cssText = `max-width:80%;padding:10px 14px;border-radius:14px;font-size:0.9rem;line-height:1.4;white-space:pre-wrap;${isUser ? "align-self:flex-end;background:#D4AF37;color:#0A1628;" : "align-self:flex-start;background:#1A2D45;color:#fff;"}`;
+function addMsg(text, isUser) {
+  const div = document.createElement("div");
+
+  div.style.cssText = `
+    max-width:80%;
+    padding:10px 14px;
+    border-radius:14px;
+    font-size:0.9rem;
+    line-height:1.5;
+    ${isUser
+      ? "align-self:flex-end;background:#D4AF37;color:#0A1628;"
+      : "align-self:flex-start;background:#1A2D45;color:#fff;"
+    }
+  `;
+
+  if (isUser) {
     div.textContent = text;
-    messages.appendChild(div);
-    messages.scrollTop = messages.scrollHeight;
+  } else {
+    // Basic Markdown formatting
+    let html = text
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+      .replace(/^• (.*)$/gm, "• $1")
+      .replace(/\n\n/g, "<br><br>")
+      .replace(/\n/g, "<br>");
+
+    div.innerHTML = html;
   }
+
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
 
   addMsg("Hi! Ask me anything from this knowledge base.", false);
 
